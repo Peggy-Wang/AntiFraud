@@ -150,7 +150,7 @@ contract AntiFraud {
         // 审核案件的警方用户地址
         address auditPoliceUser;
         // 案件图片ipfs链接
-        string screenshotLink;
+        string[] screenshotLink;
         // 案件是否有效（由警方进行判断）
         bool isValid;
         // 上传时间
@@ -165,7 +165,7 @@ contract AntiFraud {
     // 所有截图
     mapping(uint => FraudScreenshot) allSList;
     // 上传案件资料
-    function postScreenshot(string memory _screenshotLink) external {
+    function postScreenshot(string[] memory _screenshotLink) external {
         // 设置案件的发布用户地址
         screenshotIdToPostCivilUser[screenshotIndex] = msg.sender;
         
@@ -251,7 +251,7 @@ contract AntiFraud {
         // 发布时间
         uint postTime;
         // 案件图片ipfs链接
-        string caseImageLink;
+        string[] caseImageLink;
         // 案件状态表
         // 0：已被否决（社区高票否决/民警复核否决）
         // 1：已提交（社区投票中）
@@ -269,7 +269,7 @@ contract AntiFraud {
     // 储存所有案件的映射
     mapping(uint => FraudCase) allCaseList;
     // 发布案件 -> 类比拍卖系统的发布商品
-    function postCase(string memory _title, string memory _tag, string memory _description, string memory _caseImageLink) external {
+    function postCase(string memory _title, string memory _tag, string memory _description, string[] memory _caseImageLink) external {
         // 将案件加入案件列表
         FraudCase memory fraudCase;
         // 案件id设定为辅助编号
@@ -384,7 +384,7 @@ contract AntiFraud {
         // 任务是否已经解决
         bool isSolved;
         // 任务图片ipfs链接
-        string taskImageLink;
+        string[] taskImageLink;
         // 任务形式：true抢答制 false采纳制
         bool isAnswerInRush;
         // 抢答制下任务是否已被接受
@@ -399,7 +399,7 @@ contract AntiFraud {
     // 发布任务 -> 类比拍卖系统的发布商品
     // 1.抢答式：需要抢答人支付抵押金 成功完成后退回 
     // 2.采纳式：不需要抵押金 由发布者自行采纳回答 允许多人同时作答
-    function postTask(string memory _title, string memory _description, string memory _taskImageLink, bool _isAnswerInRush) external {
+    function postTask(string memory _title, string memory _description, string[] memory _taskImageLink, bool _isAnswerInRush) external {
         // 将任务加入任务列表
         Task memory task;
         // 任务编号设定为辅助编号
@@ -523,13 +523,13 @@ contract AntiFraud {
         string description;
         // 类型
         string tag;
-        string imageLink;
+        string[] imageLink;
         address postUserAdd;
     }
     // 储存所有帖子
     mapping(uint => Posts) postsList;
     // 发帖
-    function createPosts(string memory _title, string memory _description, string memory _tag, string memory _imageLink, uint _reward) external {
+    function createPosts(string memory _title, string memory _description, string memory _tag, string[] memory _imageLink, uint _reward) external {
         Posts memory _post;
         _post.id = postsIndex;
         _post.postTime = block.timestamp;
