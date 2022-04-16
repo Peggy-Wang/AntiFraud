@@ -157,10 +157,10 @@ function createCivilUser(string memory _name, string memory _avatarLink) externa
 
 ## 3.民用端-上传截图
 
-_screenshotLink: string 截图的IPFS链接
+_screenshotLink: string[] 截图的IPFS链接数组
 
 ```solidity
-function postScreenshot(string memory _screenshotLink) external {}
+function postScreenshot(string[] memory _screenshotLink) external {}
 ```
 
 ## 4.警用端-审核截图
@@ -179,10 +179,10 @@ _title:  string 标题
 
 _description: string 描述
 
-_caseImageLink: string 相关图片的IPFS链接
+_caseImageLink: string[] 相关图片的IPFS链接数组
 
 ```solidity
-function postCase(string memory _title, string memory _description, string memory _caseImageLink) external {}
+function postCase(string memory _title, string memory _description, string[] memory _caseImageLink) external {}
 ```
 
 ## 6.社区投票
@@ -215,12 +215,12 @@ _title:  string 标题
 
 _description: string 描述
 
-_caseImageLink: string 相关图片的IPFS链接
+_caseImageLink: string[] 相关图片的IPFS链接数组
 
  _isAnswerInRush: bool 该任务是否为抢答模式：true为抢答模式 false为采纳模式
 
 ```solidity
-function postTask(string memory _title, string memory _description, string memory _taskImageLink, bool _isAnswerInRush) external {}
+function postTask(string memory _title, string memory _description, string[] memory _taskImageLink, bool _isAnswerInRush) external {}
 ```
 
 ## 9.警用端-接受任务（抢答制）
@@ -275,12 +275,12 @@ _description 描述
 
 _tag 类型
 
-_imageLink 图片链接
+_imageLink: string[] 图片链接数组
 
 _reward 悬赏积分
 
 ```solidity
-function createPosts(string memory _title, string memory _description, string memory _tag, string memory _imageLink, uint _reward) external {}
+function createPosts(string memory _title, string memory _description, string memory _tag, string[] memory _imageLink, uint _reward) external {}
 ```
 
 ## 14.共用-发送回复
