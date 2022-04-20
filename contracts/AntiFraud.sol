@@ -7,7 +7,6 @@ pragma solidity >=0.4.21 <0.9.0;
 import "./erc20.sol";
 // interface 
 contract AntiFraud {
-    // // 引入ERC20规则的积分（代币）合约
     // 创建完成后所有积分归创建者所有
     // 积分发行 -> 由创建者账户转入对应用户账户
     // 总积分发行量
@@ -568,6 +567,9 @@ contract AntiFraud {
         uint postsId;
         // 楼层
         uint floor;
+        // 层级
+        // 一级回复 = 1 二级回复 = 2
+        uint level;
         uint postTime;
         // 回复内容
         string details;
@@ -580,12 +582,25 @@ contract AntiFraud {
         PostsReply memory _reply;
         _reply.postsId = _postsIndex;
         _reply.floor = ++postsList[_postsIndex].replyCounts;
+        _reply.level = 1;
         _reply.postTime = block.timestamp;
         _reply.details = _details;
         _reply.postUserAdd = msg.sender;
         // 加入回复列表
         replyListOfPosts[_postsIndex].push(_reply);
     }
+    // // 二级回复（楼中楼）
+    // function createSecondReply(uint _postsIndex, uint floor, string memory _details) external {
+    //     PostsReply memory _reply;
+    //     _reply.postsId = _postsIndex;
+    //     _reply.floor = floor;
+    //     _reply.level = 2;
+    //     _reply.postTime = block.timestamp;
+    //     _reply.details = _details;
+    //     _reply.postUserAdd = msg.sender;
+    //     // 加入回复列表
+    //     replyListOfPosts[_postsIndex].push(_reply);
+    // }
     // get指定贴子下的所有回复
     function getThisPostsReply(uint _postsIndex) external view returns (PostsReply[] memory) {
         require(_postsIndex <= postsIndex, "Post Not Exists");
@@ -595,6 +610,4 @@ contract AntiFraud {
         }
         return _List;
     }
-    // 楼中楼
-    
 }
