@@ -7,7 +7,6 @@ pragma solidity >=0.4.21 <0.9.0;
 import "./TokenERC20.sol";
 // interface 
 contract AntiFraud {
-    // // 引入ERC20规则的积分（代币）合约
     // 创建完成后所有积分归创建者所有
     // 积分发行 -> 由创建者账户转入对应用户账户
     // 总积分发行量
@@ -220,21 +219,23 @@ contract AntiFraud {
         return historyScreenshotAudit[msg.sender];
     }
     // 审核案件资料截图
-    function auditScreenshot(uint _screenshotIndex, bool _isVaild) external {
-        require(_screenshotIndex <= screenshotIndex, "Screenshot Not Exists");
-        // 设定案件是否有效
-        allSList[_screenshotIndex].isValid = _isVaild;
-        // 设定审核警方用户
-        allSList[_screenshotIndex].auditPoliceUser = msg.sender;
-        // TODO 更新市民历史上传状态
+    function auditScreenshot(uint[] memory _screenshotIndex, bool[] memory _isVaild) external {
+        for (uint i = 0; i < _screenshotIndex.length; i++) {
+            require(_screenshotIndex[i] <= screenshotIndex, "Screenshot Not Exists");
+            // 设定案件是否有效
+            allSList[_screenshotIndex[i]].isValid = _isVaild[i];
+            // 设定审核警方用户
+            allSList[_screenshotIndex[i]].auditPoliceUser = msg.sender;
+            // TODO 更新市民历史上传状态
 
-        // 加入民警历史审核
-        historyScreenshotAudit[msg.sender].push(allSList[_screenshotIndex]);
-        // 进行审核的警方用户获得积分+1
-        _transfer(administrator, msg.sender, 1);
-        // 审核有效后 市民用户获得积分+5
-        if (_isVaild) {  
-            _transfer(administrator, screenshotIdToPostCivilUser[_screenshotIndex], 5);
+            // 加入民警历史审核
+            historyScreenshotAudit[msg.sender].push(allSList[_screenshotIndex[i]]);
+            // 进行审核的警方用户获得积分+2
+            _transfer(administrator, msg.sender, 2);
+            // 审核有效后 市民用户获得积分+5
+            if (_isVaild[i]) {  
+                _transfer(administrator, screenshotIdToPostCivilUser[_screenshotIndex[i]], 5);
+            }
         }
     }
     // 案件结构体
@@ -304,28 +305,33 @@ contract AntiFraud {
     // 社区投票
     // 记录每个案件的票数 案件编号 => 得票数
     mapping(uint => int) voteCountOfCase;
+    // 记录每个案件的总的票数
+    mapping(uint => uint) totalVotedOfCase;
     // 记录该地址是否已投票 
-    mapping(address => bool) isVotedThisAddress;
+    mapping(uint => mapping(address => bool)) isVotedThisAddress;
     // 返回当前地址是否已投票
-    function getIsVoted() external view returns (bool) {
-        return isVotedThisAddress[msg.sender];
+    function getIsVoted(uint _caseIndex) external view returns (bool) {
+        return isVotedThisAddress[_caseIndex][msg.sender];
     }
     // get得票数
-    function getVoteCountOf(uint _caseIndex) external view returns (int) {
+    function getVoteCountOf(uint _caseIndex) external view returns (int, uint) {
         require(_caseIndex <= caseIndex, "Case Not Exists");
-        return voteCountOfCase[_caseIndex];
+        return (voteCountOfCase[_caseIndex], totalVotedOfCase[_caseIndex]);
     }
     // 投票
-    function vote(uint _caseIndex, bool isValid, int _checkValue) external {
-        require(isVotedThisAddress[msg.sender] == false, "Has voted");
+    function vote(uint _caseIndex, bool isValid) external {
+        require(isVotedThisAddress[_caseIndex][msg.sender] == false, "Has voted");
         require(_caseIndex <= caseIndex, "Case Not Exists");
-        isVotedThisAddress[msg.sender] = true;
+        isVotedThisAddress[_caseIndex][msg.sender] = true;
+        totalVotedOfCase[_caseIndex]++;
         if (isValid) {
             voteCountOfCase[_caseIndex]++;
         } else {
             voteCountOfCase[_caseIndex]--;
         }
-        _countCheck(_checkValue, _caseIndex);
+        _countCheck(20, _caseIndex);
+        // 市民成功投票获得积分+1
+        _transfer(administrator, msg.sender, 1);
     }
     // 票数判断
     function _countCheck(int _checkValue, uint _caseIndex) internal {
@@ -348,20 +354,22 @@ contract AntiFraud {
         allCaseList[_caseIndex].state = _state;
     }
     // 审核案件
-    function auditCase(uint _caseIndex, bool isValid) external {
-        require(_caseIndex <= caseIndex, "Case Not Exists");
-        // require(allCaseList[_caseIndex].state == 2 || allCaseList[_caseIndex].state == 3);
-        if (isValid) {
-            allCaseList[_caseIndex].state = 4;
-            // 通过审核后发布人获得积分+10
-            _transfer(administrator, caseIdToPostUser[_caseIndex], 10);
-        } else {
-            allCaseList[_caseIndex].state = 0;
+    function auditCase(uint[] memory _caseIndex, bool[] memory isValid) external {
+        for (uint i = 0; i < _caseIndex.length; i++) {
+            require(_caseIndex[i] <= caseIndex, "Case Not Exists");
+            // require(allCaseList[_caseIndex].state == 2 || allCaseList[_caseIndex].state == 3);
+            if (isValid[i]) {
+                allCaseList[_caseIndex[i]].state = 4;
+                // 通过审核后发布人获得积分+10
+                _transfer(administrator, caseIdToPostUser[_caseIndex[i]], 10);
+            } else {
+                allCaseList[_caseIndex[i]].state = 0;
+            }
+            // 加入历史审核
+            historyCaseAudit[msg.sender].push(allCaseList[_caseIndex[i]]);
+            // 负责审核警方获得积分+2
+            _transfer(administrator, msg.sender, 2);
         }
-        // 加入历史审核
-        historyCaseAudit[msg.sender].push(allCaseList[_caseIndex]);
-        // 负责审核警方获得积分+1
-        _transfer(administrator, msg.sender, 1);
     }
     // get自己的历史案件审核
     function getHistoryCaseAudit() external view returns (FraudCase[] memory) {
@@ -559,6 +567,9 @@ contract AntiFraud {
         uint postsId;
         // 楼层
         uint floor;
+        // 层级
+        // 一级回复 = 1 二级回复 = 2
+        uint level;
         uint postTime;
         // 回复内容
         string details;
@@ -571,12 +582,25 @@ contract AntiFraud {
         PostsReply memory _reply;
         _reply.postsId = _postsIndex;
         _reply.floor = ++postsList[_postsIndex].replyCounts;
+        _reply.level = 1;
         _reply.postTime = block.timestamp;
         _reply.details = _details;
         _reply.postUserAdd = msg.sender;
         // 加入回复列表
         replyListOfPosts[_postsIndex].push(_reply);
     }
+    // // 二级回复（楼中楼）
+    // function createSecondReply(uint _postsIndex, uint floor, string memory _details) external {
+    //     PostsReply memory _reply;
+    //     _reply.postsId = _postsIndex;
+    //     _reply.floor = floor;
+    //     _reply.level = 2;
+    //     _reply.postTime = block.timestamp;
+    //     _reply.details = _details;
+    //     _reply.postUserAdd = msg.sender;
+    //     // 加入回复列表
+    //     replyListOfPosts[_postsIndex].push(_reply);
+    // }
     // get指定贴子下的所有回复
     function getThisPostsReply(uint _postsIndex) external view returns (PostsReply[] memory) {
         require(_postsIndex <= postsIndex, "Post Not Exists");

@@ -52,7 +52,27 @@ function getBalanceOf(address _address) external view returns (uint256) {
     }
 ```
 
-## 5.获取案件列表
+```solidity
+    // 截图
+    struct FraudScreenshot {
+        // 资料id
+        uint id;
+        // 审核案件的警方用户地址
+        address auditPoliceUser;
+        // 案件图片ipfs链接
+        string[] screenshotLink;
+        // 案件是否有效（由警方进行判断）
+        bool isValid;
+        // 上传时间
+        uint postTime;
+    }
+```
+
+
+
+## 5.警用模式下获取自己的历史审核截图
+
+返回截图结构体数组
 
 ```solidity
     function getCase() external view 
@@ -67,14 +87,187 @@ function getBalanceOf(address _address) external view returns (uint256) {
 ## 6.获取任务列表
 
 ```solidity
-    function getTask() external view 
-        returns (uint[] memory, string[] memory, string[] memory, uint[] memory, bool[] memory, string[] memory, bool[] memory, bool[] memory) {
-            // ... ...
-            // 返回值：id数组(uint) 任务标题数组 任务描述数组 发布时间数组(uint) 是否解决数组(bool) 任务图片链接数组 是否为抢答模式数组(bool) 是否已被抢答数组(bool)
-            return(ids, titles, descriptions, postTimes, isSolveds, taskImageLinks, isAnswerInRushs, isAccpets);
-    }  
-    
+function getCase() external view returns (FraudCase[] memory) {}
 ```
+
+```solidity
+    // 案件
+    struct FraudCase {
+        // 案件id
+        uint id;
+        // 案件标题
+        string title;
+        // 案件类型
+        string tag;
+        // 案件描述
+        string description;
+        // 发布时间
+        uint postTime;
+        // 案件图片ipfs链接
+        string[] caseImageLink;
+        // 案件状态表
+        uint state;
+    }
+```
+
+FraudCase.state: uint 案件状态
+
+```
+0：已被否决（社区高票否决/民警复核否决）
+
+1：已提交（社区投票中）
+
+2：已通过社区审核（民警复核中）
+
+3：未通过社区审核（民警复核中）
+
+4：已完成 （民警复核通过/社区高票直接通过）
+```
+
+## 7.获取指定案件得票数
+
+_caseIndex: uint 指定的案件编号
+
+```solidity
+function getVoteCountOf(uint _caseIndex) external view returns (int) {}
+```
+
+## 8.警用模式下获取自己的历史审核案件
+
+返回案件结构体数组
+
+```solidity
+function getHistoryCaseAudit() external view returns (FraudCase[] memory) {}
+```
+
+## 9.获取任务列表
+
+返回任务结构体数组
+
+```solidity
+function getTask() external view returns (Task[] memory) {}   
+```
+
+```solidity
+    // 任务
+    struct Task {
+        // 任务id
+        uint id;
+        // 任务标题
+        string title;
+        // 任务描述
+        string description;
+        // 发布时间
+        uint postTime;
+        // 回答数 抢答固定为1
+        uint answerCount;
+        // 任务是否已经解决
+        bool isSolved;
+        // 任务图片ipfs链接
+        string[] taskImageLink;
+        // 任务形式：true抢答制 false采纳制
+        bool isAnswerInRush;
+        // 抢答制下任务是否已被接受
+        bool isAccept;
+    }
+```
+
+
+
+## 10.获取指定任务下的回答列表
+
+_taskIndex: uint 指定的任务编号
+
+返回回答结构体数组
+
+```solidity
+function getThisTaskAnswer(uint _taskIndex) external view returns (TaskAnswer[] memory) {}
+```
+
+```solidity
+    // 回答
+    struct TaskAnswer {
+        // 回答id
+        uint id;
+        // 内容详情
+        string detail;
+        // 回答提交时间
+        uint postTime;
+        // 作答者地址
+        address answerAddress;
+    }
+```
+
+
+
+## 11.获取帖子列表
+
+返回帖子结构体数组
+
+```solidity
+function getPostsList() external view returns (Posts[] memory) {}
+```
+
+```solidity
+    // 帖子
+    struct Posts {
+        uint id;
+        uint postTime;
+        // 悬赏金
+        uint reward;
+        // 该帖子下的回复数
+        uint replyCounts;
+        string title;
+        string description;
+        // 类型
+        string tag;
+        string[] imageLink;
+        address postUserAdd;
+    }
+```
+
+
+
+## 12.获取指定贴子下的所有回复
+
+返回回复结构体数组
+
+_postsIndex: 指定的帖子
+
+```solidity
+function getThisPostsReply(uint _postsIndex) external view returns (PostsReply[] memory) {}
+```
+
+```solidity
+    // 回复
+    struct PostsReply {
+        // 所属帖子id
+        uint postsId;
+        // 楼层
+        uint floor;
+        uint postTime;
+        // 回复内容
+        string details;
+        address postUserAdd;
+    }
+```
+
+## 13.获取指定案件的票数
+
+_caseIndex 案件编号
+
+```solidity
+function getVoteCountOf(uint _caseIndex) external view returns (int) {}
+```
+
+## 14.查看当前地址是否已投票指定案件
+
+_caseIndex 案件编号
+
+```solidity
+function getIsVoted(uint _caseIndex) external view returns (bool) {}
+```
+
 
 
 
@@ -100,20 +293,20 @@ function createCivilUser(string memory _name, string memory _avatarLink) externa
 
 ## 3.民用端-上传截图
 
-_screenshotLink: string 截图的IPFS链接
+_screenshotLink: string[] 截图的IPFS链接数组
 
 ```solidity
-function postScreenshot(string memory _screenshotLink) external {}
+function postScreenshot(string[] memory _screenshotLink) external {}
 ```
 
 ## 4.警用端-审核截图
 
-_screenshotIndex: string 案件资料（截图）的id
+_screenshotIndex: string[] 案件资料（截图）的id数组
 
-_isVaild: bool 是否有效
+_isVaild: bool[] 是否有效数组
 
 ```solidity
-function auditScreenshot(uint _screenshotIndex, bool _isVaild) external {}
+function auditScreenshot(uint[] memory _screenshotIndex, bool[] memory _isVaild) external {}
 ```
 
 ## 5.共用-发布案件
@@ -122,10 +315,10 @@ _title:  string 标题
 
 _description: string 描述
 
-_caseImageLink: string 相关图片的IPFS链接
+_caseImageLink: string[] 相关图片的IPFS链接数组
 
 ```solidity
-function postCase(string memory _title, string memory _description, string memory _caseImageLink) external {}
+function postCase(string memory _title, string memory _description, string[] memory _caseImageLink) external {}
 ```
 
 ## 6.社区投票
@@ -144,12 +337,12 @@ function vote(uint _caseIndex, bool isValid, int _checkValue) external {}
 
 ## 7.民警复核案件
 
-_caseIndex: uint 复核的案件编号
+_caseIndex: uint[] 复核的案件编号数组
 
-isValid: bool 是否有效
+isValid: bool[] 是否有效数组
 
 ```solidity
-function auditCase(uint _caseIndex, bool isValid) external {}
+function auditCase(uint[] memory _caseIndex, bool[] memory isValid) external {}
 ```
 
 ## 8.警用端-发布任务
@@ -158,12 +351,12 @@ _title:  string 标题
 
 _description: string 描述
 
-_caseImageLink: string 相关图片的IPFS链接
+_caseImageLink: string[] 相关图片的IPFS链接数组
 
  _isAnswerInRush: bool 该任务是否为抢答模式：true为抢答模式 false为采纳模式
 
 ```solidity
-function postTask(string memory _title, string memory _description, string memory _taskImageLink, bool _isAnswerInRush) external {}
+function postTask(string memory _title, string memory _description, string[] memory _taskImageLink, bool _isAnswerInRush) external {}
 ```
 
 ## 9.警用端-接受任务（抢答制）
@@ -218,12 +411,12 @@ _description 描述
 
 _tag 类型
 
-_imageLink 图片链接
+_imageLink: string[] 图片链接数组
 
 _reward 悬赏积分
 
 ```solidity
-function createPosts(string memory _title, string memory _description, string memory _tag, string memory _imageLink, uint _reward) external {}
+function createPosts(string memory _title, string memory _description, string memory _tag, string[] memory _imageLink, uint _reward) external {}
 ```
 
 ## 14.共用-发送回复
@@ -236,3 +429,17 @@ _details 回复内容
 function createPostsReply(uint _postsIndex, string memory _details) external {}
 ```
 
+# 积分
+
+## 民警
+
+- 审核截图+2积分
+- 复核案件+2积分
+- 任务抢答抵押金-2积分
+- 任务成功回答/被采纳奖金+10积分
+
+## 市民
+
+* 投票+1积分
+* 上传的截图被认定为有效截图+5积分
+* 上传（举报）的案件被通过（认为是诈骗案件）+10积分
