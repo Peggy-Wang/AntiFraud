@@ -16,7 +16,6 @@
     "ipfs-http-client": "^56.0.2",
     "less-loader": "5.0.0",
     "react": "^17.0.2",
-    "react-app-rewired": "^2.2.1",
     "react-dom": "^17.0.2",
     "react-redux": "^7.2.6",
     "react-router": "^6.2.2",
@@ -51,7 +50,8 @@
     ]
   },
   "devDependencies": {
-    "ipfs-api": "^26.1.2"
+    "ipfs-api": "^26.1.2",
+    "react-app-rewired": "^2.2.1"
   },
   "proxy": "http://127.0.0.1:8080"
 }

@@ -4,8 +4,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.21 <0.9.0;
 
-import "./TokenERC20.sol";
-// interface 
+// import "./TokenERC20.sol";
 contract AntiFraud {
     // 创建完成后所有积分归创建者所有
     // 积分发行 -> 由创建者账户转入对应用户账户
