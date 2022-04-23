@@ -1,9 +1,6 @@
 // var SimpleStorage = artifacts.require("./SimpleStorage.sol");
-var AntiFraud = artifacts.require("AntiFraud");
-var TokenERC20 = artifacts.require("TokenERC20");
+var Main = artifacts.require("Main");
 
 module.exports = function(deployer) {
-  // deployer.deploy(SimpleStorage);
-  deployer.deploy(AntiFraud);
-  deployer.deploy(TokenERC20, 100, "Credit", "$");
+  deployer.deploy(Main);
 };
