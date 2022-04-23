@@ -133,7 +133,7 @@ contract Main {
         // 发布人地址
         address userAdd;
         // 是否已经过审核
-        bool isSetValid;
+        bool isSetValidity;
         // 是否为有效信息
         bool isValid;
         // 是否为诈骗案
@@ -153,7 +153,7 @@ contract Main {
         _case.postTime = block.timestamp;
         _case.imageLinks = _imageLinks;
         _case.userAdd = msg.sender;
-        _case.isSetValid = false;
+        _case.isSetValidity = false;
         _case.isValid = false;
         _case.isFraud = false;
         // 加入案件列表
@@ -173,6 +173,7 @@ contract Main {
     function setCaseValidity(uint[] memory _caseIndex, bool[] memory _isValid) external {
         for (uint i = 1; i < _caseIndex.length + 1; i++) {
             require(caseList[_caseIndex[i]].id != 0, "Invalid case index");
+            caseList[_caseIndex[i]].isSetValidity = true;
             caseList[_caseIndex[i]].isValid = _isValid[i];
             // 审核用户积分+1
             _transfer(administrator, msg.sender, 1);
@@ -196,7 +197,7 @@ contract Main {
 
     // 获取案件状态
     function getCaseState(uint _caseIndex) external view returns (uint) {
-        if (!caseList[_caseIndex].isSetValid) {
+        if (!caseList[_caseIndex].isSetValidity) {
             // 成功提交，等待审核中
             return 1;
         } else {
@@ -236,10 +237,10 @@ contract Main {
     }
     
     // 投票
-    function vote(uint _caseIndex, bool _isValid) external {
+    function vote(uint _caseIndex, bool _isFraud) external {
         require(_caseIndex <= caseIndex, "Case Not Exists");
         isVotedThisAddress[_caseIndex][msg.sender] = true;
-        if (_isValid) {
+        if (_isFraud) {
             ++voteYesCount[_caseIndex];
         } else {
             --voteNoCount[_caseIndex];
@@ -300,6 +301,15 @@ contract Main {
     function postTaskFromCase(uint _caseIndex) external {
         Case memory _case = caseList[_caseIndex];
         _postTask(_case.title, _case.tag, _case.description, _case.imageLinks);
+    }
+
+    // 获取任务列表
+    function getTaskList() external view returns (Task[] memory) {
+        Task[] memory _List = new Task[](taskIndex);
+        for (uint i = 0; i < taskIndex; i++) {
+            _List[i] = taskList[i + 1];
+        }
+        return (_List);
     }
 
     // 接受任务
