@@ -70,7 +70,7 @@ contract Main {
     }
 
     // 警方用户列表
-    mapping(uint => User) policeList;
+    mapping(address => User) policeList;
 
     // 注册警方用户
     function createPoliceUser(string memory _name, string memory _avatarLink) external {
@@ -79,16 +79,16 @@ contract Main {
         _police.name = _name;
         _police.avatarLink = _avatarLink;
         _police.userAdd = msg.sender;
-        policeList[policeIndex] = _police;
+        policeList[msg.sender] = _police;
     }
 
     // 获取警方用户
-    function getPoliceUser(uint _policeIndex) external view returns (User memory) {
-        return policeList[_policeIndex];
+    function getPoliceUser(address _userAdd) external view returns (User memory) {
+        return policeList[_userAdd];
     }
 
     // 市民用户列表
-    mapping(uint => User) civilList;
+    mapping(address => User) civilList;
 
     // 注册市民用户
     function createCivilUser(string memory _name, string memory _avatarLink) external {
@@ -97,12 +97,12 @@ contract Main {
         _civil.name = _name;
         _civil.avatarLink = _avatarLink;
         _civil.userAdd = msg.sender;
-        civilList[civilIndex] = _civil;
+        civilList[msg.sender] = _civil;
     }
 
     // 获取市民用户
-    function getCivilUser(uint _civilIndex) external view returns (User memory) {
-        return civilList[_civilIndex]; 
+    function getCivilUser(address _userAdd) external view returns (User memory) {
+        return civilList[_userAdd]; 
     }
 
     // 通用回复结构
@@ -132,6 +132,8 @@ contract Main {
         string[] imageLinks;
         // 发布人地址
         address userAdd;
+        // 审核人地址
+        address validitySetUserAdd;
         // 是否已经过审核
         bool isSetValidity;
         // 是否为有效信息
@@ -153,6 +155,7 @@ contract Main {
         _case.postTime = block.timestamp;
         _case.imageLinks = _imageLinks;
         _case.userAdd = msg.sender;
+        _case.validitySetUserAdd = address(0);
         _case.isSetValidity = false;
         _case.isValid = false;
         _case.isFraud = false;
@@ -171,8 +174,9 @@ contract Main {
 
     // 审核案件是否为有效诈骗信息
     function setCaseValidity(uint[] memory _caseIndex, bool[] memory _isValid) external {
-        for (uint i = 1; i < _caseIndex.length + 1; i++) {
+        for (uint i = 0; i < _caseIndex.length; i++) {
             require(caseList[_caseIndex[i]].id != 0, "Invalid case index");
+            caseList[_caseIndex[i]].validitySetUserAdd = msg.sender;
             caseList[_caseIndex[i]].isSetValidity = true;
             caseList[_caseIndex[i]].isValid = _isValid[i];
             // 审核用户积分+1
@@ -185,6 +189,23 @@ contract Main {
                 delete caseList[_caseIndex[i]];
             }
         }
+    }
+
+    // 获取历史审核
+    function getMyHistoryCaseValiditySet() external view returns (Case[] memory) {
+        uint siz = 0; 
+        for (uint i = 1; i <= caseIndex; i++) {
+            if (caseList[i].validitySetUserAdd == msg.sender) {
+                ++siz;
+            }
+        }
+        Case[] memory _List = new Case[](siz);
+        for (uint i = 1; i <= caseIndex; i++) {
+            if (caseList[i].validitySetUserAdd == msg.sender) {
+                _List[i - 1] = caseList[i];
+            }
+        }
+        return _List;
     }
 
     // 判断案件是否有诈骗嫌疑
