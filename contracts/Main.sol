@@ -15,7 +15,6 @@ contract Main {
     uint civilIndex;
     uint caseIndex;
     uint taskIndex;
-    uint productIndex;
     uint transactionPostIndex;
 
     constructor() {
@@ -28,7 +27,6 @@ contract Main {
         civilIndex = 0;
         caseIndex = 0;
         taskIndex = 0;
-        productIndex = 0;
         transactionPostIndex = 0;
     }
 
@@ -144,6 +142,8 @@ contract Main {
 
     // 案件列表
     mapping(uint => Case) caseList;
+    // 记录个人历史审核的列表 
+    mapping(address => Case[]) personalList;
 
     // 发布案件 -> 类比拍卖系统的发布商品
     function postCase(string memory _title, string memory _tag, string memory _description, string[] memory _imageLinks) external {
@@ -176,6 +176,7 @@ contract Main {
     function setCaseValidity(uint[] memory _caseIndex, bool[] memory _isValid) external {
         for (uint i = 0; i < _caseIndex.length; i++) {
             require(caseList[_caseIndex[i]].id != 0, "Invalid case index");
+            personalList[msg.sender].push(caseList[_caseIndex[i]]);
             caseList[_caseIndex[i]].validitySetUserAdd = msg.sender;
             caseList[_caseIndex[i]].isSetValidity = true;
             caseList[_caseIndex[i]].isValid = _isValid[i];
@@ -193,17 +194,10 @@ contract Main {
 
     // 获取历史审核
     function getMyHistoryCaseValiditySet() external view returns (Case[] memory) {
-        uint siz = 0; 
-        for (uint i = 1; i <= caseIndex; i++) {
-            if (caseList[i].validitySetUserAdd == msg.sender) {
-                ++siz;
-            }
-        }
+        uint siz = personalList[msg.sender].length;
         Case[] memory _List = new Case[](siz);
-        for (uint i = 1; i <= caseIndex; i++) {
-            if (caseList[i].validitySetUserAdd == msg.sender) {
-                _List[i - 1] = caseList[i];
-            }
+        for (uint i = 0; i < siz; i++) {
+            _List[i] = personalList[msg.sender][i];
         }
         return _List;
     }
@@ -375,48 +369,6 @@ contract Main {
         taskList[_taskIndex].isAccept = false;
         taskList[_taskIndex].acceptAdd = address(0);
         taskList[_taskIndex].acceptTime = 0;
-    }
-
-    // 官方积分商店
-    // 商品结构
-    struct Product {
-        uint id;
-        string name;
-        string details;
-        uint price;
-        // 库存
-        uint inventory;
-    }
-
-    // 商品列表
-    mapping(uint => Product) productList;
-
-    // 上传商品（仅供测试人员使用）
-    function createProduct(string memory _name, string memory _details, uint _price, uint _inventory) external {
-        Product memory _product;
-        _product.id = ++productIndex;
-        _product.name = _name;
-        _product.details = _details;
-        _product.price = _price;
-        _product.inventory = _inventory;
-        productList[productIndex] = _product;
-    }
-
-    // 获取商品列表
-    function getProductList() external view returns (Product[] memory) {
-        Product[] memory _List = new Product[](productIndex);
-        for (uint i = 0; i < productIndex; i++) {
-            _List[i] = productList[i+1];
-        }
-        return (_List);
-    }
-
-    // 用户兑换商品
-    function purchase(uint _productIndex) external {
-        require(productList[_productIndex].inventory > 0, "Inventory not enough!");
-        require(balanceOf[msg.sender] >= productList[_productIndex].price, "Credit balance not enough!");
-        --productList[_productIndex].inventory;
-        _transfer(msg.sender, administrator, productList[_productIndex].price);
     }
 
     // 警用积分交易社区（闲鱼）
