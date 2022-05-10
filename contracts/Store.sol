@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0 <0.9.0;
 
+import "./Main.sol";
+
 contract Store {
-    uint productIndex;
+    uint productIndex = 0;
+
     // 官方积分商店
     // 商品结构
     struct Product {
@@ -38,10 +41,10 @@ contract Store {
     }
 
     // 用户兑换商品
-    // function purchase(uint _productIndex) external {
-    //     require(productList[_productIndex].inventory > 0, "Inventory not enough!");
-    //     require(balanceOf[msg.sender] >= productList[_productIndex].price, "Credit balance not enough!");
-    //     --productList[_productIndex].inventory;
-    //     _transfer(msg.sender, administrator, productList[_productIndex].price);
-    // }
+    function purchase(Main _mainContract, uint _productIndex) external {
+        require(productList[_productIndex].inventory > 0, "Inventory not enough!");
+        require(_mainContract.getBalanceOf(msg.sender) >= productList[_productIndex].price, "Credit balance not enough!");
+        --productList[_productIndex].inventory;
+        _mainContract.transfer(msg.sender, _mainContract.getAdministratorAdd(), productList[_productIndex].price);
+    }
 }

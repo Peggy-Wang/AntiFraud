@@ -30,6 +30,11 @@ contract Main {
         transactionPostIndex = 0;
     }
 
+    // 获取创建者地址
+    function getAdministratorAdd() external view returns (address) {
+        return administrator;
+    }
+
     // 获取余额
     function _getBalanceOf(address _userAdd) internal view returns (uint) {
         return (balanceOf[_userAdd]);
